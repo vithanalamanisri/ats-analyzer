@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Pro Auditor | Smart Resume Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="text-slate-800">
+
+    <nav class="sticky top-0 z-50 bg-slate-900 text-white shadow-xl">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a class="flex items-center gap-2 text-xl font-extrabold tracking-tight text-blue-400" href="/">
+                <i class="bi bi-cpu-fill"></i> ATS AUDITOR PRO
+            </a>
+            <div class="hidden md:flex space-x-8 font-medium">
+                <a href="/" class="hover:text-blue-400 transition {% if page == 'home' %}nav-active{% endif %}">Home</a>
+                <a href="/process" class="hover:text-blue-400 transition {% if page == 'process' %}nav-active{% endif %}">How it Works</a>
+                <a href="/about" class="hover:text-blue-400 transition {% if page == 'about' %}nav-active{% endif %}">About Project</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-10 min-h-screen">
+
+        {% if page == 'home' %}
+        <div class="max-w-5xl mx-auto glass-card rounded-3xl shadow-2xl overflow-hidden mb-12 border-t-4 border-blue-500">
+            <div class="p-8 md:p-12">
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-8 flex items-center gap-3">
+                    <i class="bi bi-file-earmark-arrow-up text-blue-600"></i> Resume Audit Console
+                </h2>
+                <form method="POST" enctype="multipart/form-data" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Branch</label>
+                            <select id="branch" name="branch" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 focus:ring-4 focus:ring-blue-100 outline-none" required>
+                                <option value="">-- Select Branch --</option>
+                                {% for b in branch_data.keys() %}
+                                <option value="{{ b }}">{{ b }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Job Role</label>
+                            <select id="job_role" name="job_role" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 focus:ring-4 focus:ring-blue-100 outline-none disabled:opacity-50" required disabled>
+                                <option value="">-- Choose Role --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Resume (PDF)</label>
+                            <input type="file" name="resume" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-3.5" accept=".pdf" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full gradient-brand text-white text-lg font-bold py-5 rounded-2xl hover:scale-[1.01] transition-all shadow-xl uppercase tracking-widest">
+                        Run Audit Inspection
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if result %}
+        <div class="max-w-6xl mx-auto space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 glass-card rounded-3xl p-8 text-center shadow-lg border-b-8 border-blue-600">
+                    <h5 class="text-slate-400 font-bold text-xs uppercase tracking-widest mb-6">Audit Analyzer Score</h5>
+                    <div class="relative inline-flex items-center justify-center mb-6">
+                        <svg class="w-40 h-40 transform -rotate-90">
+                            <circle cx="80" cy="80" r="70" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-100" />
+                            <circle cx="80" cy="80" r="70" stroke="currentColor" stroke-width="12" fill="transparent" 
+                                stroke-dasharray="440" 
+                                stroke-dashoffset="{{ 440 - (result.score / 100) * 440 }}" 
+                                class="text-blue-600 score-circle" />
+                        </svg>
+                        <span class="absolute text-4xl font-black text-slate-800">{{ result.score }}%</span>
+                    </div>
+                    <h3 class="text-2xl font-extrabold">{{ result.rating }}</h3>
+                    <p class="text-slate-500 font-medium mt-2">Density: <b>{{ result.density }} / 100 words</b></p>
+                </div>
+
+                <div class="lg:col-span-8 glass-card rounded-3xl p-8 shadow-lg">
+                    <h4 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="bi bi-search text-blue-600"></i> Resume SEO & Identity</h4>
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Identity Theme Words:</p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        {% for theme in result.seo_themes %}
+                        <span class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm">#{{ theme }}</span>
+                        {% endfor %}
+                    </div>
+                    {% if result.seo_cliches %}
+                    <div class="bg-amber-50 rounded-2xl p-5 border border-amber-100">
+                        <p class="text-xs font-bold text-amber-700 uppercase mb-2 flex items-center gap-2">
+                           <i class="bi bi-exclamation-triangle"></i> Cliché Alert Words:
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            {% for word in result.seo_cliches %}
+                            <span class="bg-white text-rose-500 border border-rose-200 px-3 py-1 rounded-lg text-xs font-bold italic">{{ word }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 shadow-lg">
+                <h4 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="bi bi-grid-fill text-blue-600"></i> Skill Matching Analysis</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div>
+                        <p class="text-green-600 font-bold text-sm uppercase tracking-widest mb-4">✅ Matched Keywords:</p>
+                        <div class="flex flex-wrap gap-2">
+                            {% for s in result.detected %}
+                            <span class="bg-green-50 text-green-700 border border-green-100 px-3 py-1.5 rounded-lg text-sm font-semibold">{{ s }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-rose-500 font-bold text-sm uppercase tracking-widest mb-4">❌ Missing Critical Skills:</p>
+                        <div class="flex flex-wrap gap-2">
+                            {% for s in result.missing %}
+                            <span class="bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg text-sm font-semibold">+ {{ s }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl overflow-hidden shadow-lg border-b-4 border-slate-900">
+                <div class="bg-slate-900 text-white px-8 py-5 font-bold">📝 13-Point Structural Audit</div>
+                <div class="divide-y divide-slate-100">
+                    {% for item in result.checklist %}
+                    <div class="px-8 py-4 flex justify-between items-center hover:bg-slate-50 transition">
+                        <span class="font-medium text-slate-700">{{ item.label }}</span>
+                        {% if item.status %}
+                        <i class="bi bi-check-circle-fill text-green-500 text-xl"></i>
+                        {% else %}
+                        <i class="bi bi-x-circle text-rose-300 text-xl"></i>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% elif page == 'about' %}
+        <div class="max-w-4xl mx-auto glass-card rounded-3xl p-10 shadow-2xl">
+            <h2 class="text-3xl font-black text-slate-900 mb-6 border-b-4 border-blue-500 pb-2">📘 About the Project</h2>
+            <p class="text-lg text-slate-600 leading-relaxed">This project is a <b>Smart Resume Audit and Job Compatibility Analysis System</b>. It acts as a complete guide for job seekers by analyzing identity themes, keyword density, and structural integrity.</p>
+        </div>
+
+        {% elif page == 'process' %}
+        <div class="max-w-4xl mx-auto glass-card rounded-3xl p-10 shadow-2xl">
+            <h2 class="text-3xl font-black text-slate-900 mb-8 border-b-4 border-blue-500 pb-2">⚙️ How the System Works</h2>
+            
+            <div class="space-y-6 mt-6">
+                <div class="flex gap-4 p-4 bg-blue-50 rounded-2xl">
+                    <div class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+                    <p><b>Parsing:</b> The system extracts raw text from your PDF using `pdfplumber` and organizes it into machine-readable data.</p>
+                </div>
+                <div class="flex gap-4 p-4 bg-slate-50 rounded-2xl">
+                    <div class="bg-slate-900 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+                    <p><b>Matching:</b> Regex algorithms cross-reference your skills with a database of 100+ industry-specific job roles.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <footer class="bg-slate-900 text-white mt-20 pt-16 pb-10">
+        <div class="container mx-auto px-6 text-center">
+            <h5 class="text-blue-400 font-black uppercase tracking-widest mb-8">Project Developed By</h5>
+            <div class="inline-flex flex-col md:flex-row items-center gap-8 bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl">
+                <div class="text-left border-l-4 border-blue-500 pl-6">
+                    <p class="text-sm font-bold text-slate-400">LEAD ARCHITECT</p>
+                    <p class="text-xl font-black">VITHANALA MANI SRI</p>
+                    <p class="text-slate-400 text-xs mt-1">Bonam Venkata Chalamayya Institute of Tech & Science</p>
+                    <p class="text-blue-400 mt-2 font-mono tracking-tighter"><i class="bi bi-telephone"></i> 8019321512</p>
+                </div>
+            </div>
+            <p class="mt-12 text-xs text-slate-500">&copy; 2025 Smart Resume Auditor. Refined Industry Standard.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+        // Inject branch data into JS
+        const BRANCH_DATA = {{ branch_data | tojson | safe }};
+    </script>
+</body>
+</html>
